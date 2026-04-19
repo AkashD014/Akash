@@ -1,0 +1,276 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: food
+    description: Food detection and calorie tracking
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /food/analyze:
+    post:
+      operationId: analyzeFood
+      tags: [food]
+      summary: Analyze food image with AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeFoodBody"
+      responses:
+        "200":
+          description: Food analysis result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodAnalysisResult"
+
+  /food/entries:
+    get:
+      operationId: getFoodEntries
+      tags: [food]
+      summary: Get food log entries for a user
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+          description: ISO date string (YYYY-MM-DD), defaults to today
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of food entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodEntriesList"
+    post:
+      operationId: createFoodEntry
+      tags: [food]
+      summary: Log a food entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFoodEntryBody"
+      responses:
+        "201":
+          description: Created food entry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FoodEntry"
+
+  /food/entries/{id}:
+    delete:
+      operationId: deleteFoodEntry
+      tags: [food]
+      summary: Delete a food log entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /food/daily-summary:
+    get:
+      operationId: getDailySummary
+      tags: [food]
+      summary: Get daily calorie summary for a user
+      parameters:
+        - name: userId
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Daily calorie summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailySummary"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    AnalyzeFoodBody:
+      type: object
+      properties:
+        imageBase64:
+          type: string
+          description: Base64 encoded image data (without data URL prefix)
+        mimeType:
+          type: string
+          description: Image MIME type (e.g. image/jpeg)
+        goal:
+          type: string
+          enum: [weight_loss, balanced, weight_gain]
+          description: User's dietary goal
+      required:
+        - imageBase64
+        - mimeType
+
+    FoodAnalysisResult:
+      type: object
+      properties:
+        foodName:
+          type: string
+        calories:
+          type: integer
+        confidence:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+        suggestion:
+          type: string
+          description: Goal-based dietary suggestion
+      required:
+        - foodName
+        - calories
+        - confidence
+
+    FoodEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: string
+        foodName:
+          type: string
+        calories:
+          type: integer
+        confidence:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+        goal:
+          type: string
+        imageBase64:
+          type: string
+        loggedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - foodName
+        - calories
+        - loggedAt
+
+    CreateFoodEntryBody:
+      type: object
+      properties:
+        userId:
+          type: string
+        foodName:
+          type: string
+        calories:
+          type: integer
+        confidence:
+          type: number
+        protein:
+          type: number
+        carbs:
+          type: number
+        fat:
+          type: number
+        goal:
+          type: string
+        imageBase64:
+          type: string
+      required:
+        - userId
+        - foodName
+        - calories
+
+    FoodEntriesList:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/FoodEntry"
+        totalCalories:
+          type: integer
+      required:
+        - entries
+        - totalCalories
+
+    DailySummary:
+      type: object
+      properties:
+        date:
+          type: string
+        totalCalories:
+          type: integer
+        entryCount:
+          type: integer
+        goal:
+          type: string
+      required:
+        - date
+        - totalCalories
+        - entryCount
+
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success
