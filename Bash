@@ -1,3 +1,5 @@
 pnpm --filter calorie-detector build
 git init
 git checkout -b gh-pages
+git add .
+git commit -m "deploy frontend"
