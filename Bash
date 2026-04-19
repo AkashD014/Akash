@@ -3,3 +3,4 @@ git init
 git checkout -b gh-pages
 git add .
 git commit -m "deploy frontend"
+git remote add origin https://github.com/AkashD014/Akash.git
