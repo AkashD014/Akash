@@ -1,1 +1,1 @@
-
+pnpm --filter calorie-detector build
